@@ -1,0 +1,15 @@
+file-documentation/
+├── backend/
+│   ├── app.py
+│   └── requirements.txt
+└── frontend/
+    ├── package.json
+    ├── src/
+    │   ├── App.js
+    │   ├── components/
+    │   │   ├── FileExplorer.js
+    │   │   ├── FilterPanel.js
+    │   │   └── DocumentationView.js
+    │   └── index.js
+    └── public/
+        └── index.html 
