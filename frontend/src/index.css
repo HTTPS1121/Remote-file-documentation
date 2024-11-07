@@ -11,6 +11,9 @@
   --gradient: linear-gradient(135deg, var(--primary-color), #1e88e5);
   --container-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
   --border-width: 1px;
+  --cell-padding: 12px 1.5rem;
+  --row-height: 48px;
+  --grid-columns: var(--name-width) var(--size-width) var(--duration-width);
 }
 
 body {
@@ -885,4 +888,51 @@ button:disabled {
   border-width: 5px;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+/* הגדרות בסיס משותפות */
+:root {
+  --cell-padding: 12px 1.5rem;
+  --row-height: 48px;
+  --grid-columns: var(--name-width) var(--size-width) var(--duration-width);
+}
+
+/* תבנית בסיס לשורות */
+.grid-row {
+  display: grid;
+  grid-template-columns: var(--grid-columns);
+  min-height: var(--row-height);
+}
+
+/* יורשים מהתבנית */
+.file-row,
+.table-headers {
+  composes: grid-row;
+}
+
+/* סגנון בסיס לתאים */
+.table-cell {
+  display: flex;
+  align-items: center;
+  padding: var(--cell-padding);
+  box-sizing: border-box;
+  height: var(--row-height);
+}
+
+/* יורשים מהתא הבסיסי */
+.header-cell,
+.file-row > * {
+  composes: table-cell;
+}
+
+/* הגדרות ספציפיות */
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size,
+.file-duration {
+  justify-content: flex-start;
 }
