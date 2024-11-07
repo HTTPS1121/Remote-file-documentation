@@ -716,7 +716,7 @@ button:disabled {
 .header-cell {
   padding: 12px 1.5rem;
   line-height: 1.5;
-  height: 48px; /* גובה קבוע לכל התאים */
+  height: 48px; /* גובה קבוע לכל ה��אים */
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -898,20 +898,14 @@ button:disabled {
 }
 
 /* תבנית בסיס לשורות */
-.grid-row {
+.grid-row-base {
   display: grid;
   grid-template-columns: var(--grid-columns);
   min-height: var(--row-height);
 }
 
-/* יורשים מהתבנית */
-.file-row,
-.table-headers {
-  composes: grid-row;
-}
-
 /* סגנון בסיס לתאים */
-.table-cell {
+.table-cell-base {
   display: flex;
   align-items: center;
   padding: var(--cell-padding);
@@ -919,10 +913,22 @@ button:disabled {
   height: var(--row-height);
 }
 
+/* יורשים מהתבנית */
+.file-row,
+.table-headers {
+  display: grid;
+  grid-template-columns: var(--grid-columns);
+  min-height: var(--row-height);
+}
+
 /* יורשים מהתא הבסיסי */
 .header-cell,
 .file-row > * {
-  composes: table-cell;
+  display: flex;
+  align-items: center;
+  padding: var(--cell-padding);
+  box-sizing: border-box;
+  height: var(--row-height);
 }
 
 /* הגדרות ספציפיות */
