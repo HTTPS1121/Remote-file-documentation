@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+__pycache__/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Build
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
+*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.swp
+*.swo
+*~
+Thumbs.db 
+
+# Security & Logs
+*.log
+logs/
+users.json
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets.*
+config.*
+credentials.*
+.htpasswd
+.htaccess
+
+# Environment
+.env*
+.flaskenv*
+!.env.example
+
+# Cache
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
