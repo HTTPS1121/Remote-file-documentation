@@ -41,10 +41,8 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
 
       {isOpen && (
         <div className="settings-panel">
-          
-          {/* הגדרות ייצוא */}
-          <div className="settings-section">
-            <h4>פורמט ייצוא</h4>
+          <div className="settings-group">
+            <h3>פורמט ייצוא</h3>
             <div className="export-format-settings">
               <label>
                 <input
@@ -69,9 +67,8 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
             </div>
           </div>
 
-          {/* הגדרות רוחב עמודות */}
-          <div className="settings-section">
-            <h4>רוחב עמודות</h4>
+          <div className="settings-group">
+            <h3>רוחב עמודות</h3>
             <div className="width-settings">
               <label>
                 שם
@@ -109,22 +106,22 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
             </div>
           </div>
 
-          {/* הגדרות תצוגה */}
-          <div className="settings-section">
-            <h4>תצוגה</h4>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={tableSettings.showExtensions}
-                onChange={(e) => onSettingsChange('showExtensions', e.target.checked)}
-              />
-              הצג סיומות קבצים
-            </label>
+          <div className="settings-group">
+            <h3>תצוגה</h3>
+            <div className="display-settings">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={tableSettings.showExtensions}
+                  onChange={(e) => onSettingsChange('showExtensions', e.target.checked)}
+                />
+                הצג סיומות קבצים
+              </label>
+            </div>
           </div>
 
-          {/* הגדרות קווים */}
-          <div className="settings-section">
-            <h4>מסגרת וקווים</h4>
+          <div className="settings-group">
+            <h3>מסגרת וקווים</h3>
             <div className="border-settings">
               <div className="settings-group">
                 <h5>עובי קווים</h5>

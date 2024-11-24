@@ -108,7 +108,7 @@ body {
   gap: 0.5rem;
 }
 
-/* תת-ח��ק תחתון (רשימת תיקיות) ל Path Section */
+/* תת-חק תחתון (רשימת תיקיות) ל Path Section */
 .directories-wrapper {
   flex: 1;
   overflow-y: auto; /* רק כאן מאפשרים גלילה */
@@ -647,38 +647,94 @@ button:disabled {
 
 .settings-panel {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   left: 0;
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  padding: 1rem;
-  min-width: 250px;
+  padding: 1.5rem;
+  min-width: 320px;
   z-index: 1000;
-  
-  /* הוספת הגדרות גלילה */
-  max-height: calc(100vh - 150px); /* משאיר מרווח מלמעלה ומלמטה */
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
-  
-  /* סטיילינג לסקרולבר */
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
+  border: 1px solid var(--border-color);
 }
 
-/* סטיילינג לסקרולבר בדפדפני webkit */
-.settings-panel::-webkit-scrollbar {
-  width: 8px;
+.settings-group {
+  background: var(--bg-light);
+  padding: 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
 }
 
-.settings-panel::-webkit-scrollbar-track {
-  background: transparent;
+.settings-group:last-child {
+  margin-bottom: 0;
 }
 
-.settings-panel::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 4px;
+.settings-group h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+/* הוספת אייקונים לכותרות */
+.settings-group h3::before {
+  font-size: 1.1rem;
+}
+
+.settings-group:nth-child(1) h3::before { content: '📁'; }  /* פורמט ייצוא */
+.settings-group:nth-child(2) h3::before { content: '↔️'; }  /* רוחב עמודות */
+.settings-group:nth-child(3) h3::before { content: '👁️'; }  /* תצוגה */
+.settings-group:nth-child(4) h3::before { content: '🎨'; }  /* מסגרת וקווים */
+
+/* Input Styles */
+.settings-group input[type="number"],
+.settings-group input[type="text"] {
+  width: 80px;
+  padding: 0.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.settings-group input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(41, 98, 255, 0.1);
+  outline: none;
+}
+
+/* Radio & Checkbox Styles */
+.export-format-settings {
+  display: flex;
+  gap: 1rem;
+}
+
+.export-format-settings label,
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-format-settings label:hover,
+.checkbox-label:hover {
+  border-color: var(--primary-color);
+  background: var(--hover-color);
+}
+
+/* Width Settings */
 .width-settings {
   display: flex;
   flex-direction: column;
@@ -687,16 +743,51 @@ button:disabled {
 
 .width-settings label {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
 }
 
-.width-settings input {
-  width: 80px;
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
   padding: 0.25rem;
-  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  border: 2px solid var(--border-color);
+}
+
+/* Border Settings */
+.border-settings .settings-group {
+  background: white;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.border-settings h5 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+/* Scrollbar Styling */
+.settings-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+  background: var(--bg-light);
   border-radius: 4px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e0;
 }
 
 /* עדכון הגדרות הטבלה */
@@ -778,6 +869,7 @@ button:disabled {
   background: var(--bg-light);
   padding: 1rem;
   border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
 .settings-group label {
@@ -904,7 +996,7 @@ button:disabled {
   min-height: var(--row-height);
 }
 
-/* סגנון ��סיס לתאים */
+/* סגנון סיס לתאים */
 .table-cell-base {
   display: flex;
   align-items: center;
