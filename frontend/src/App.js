@@ -26,9 +26,9 @@ function App() {
   const [columnWidths, setColumnWidths] = useState(() => {
     const saved = localStorage.getItem('columnWidths');
     return saved ? JSON.parse(saved) : {
-      name: 300,
-      size: 100,
-      duration: 100
+      name: 530,
+      size: 107,
+      duration: 102
     };
   });
   const [tableSettings, setTableSettings] = useState(() => {
