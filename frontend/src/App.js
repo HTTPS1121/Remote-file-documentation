@@ -236,7 +236,7 @@ function App() {
       return null;
     }
 
-    // שמירת המצב הנוכחי של הקבצים והסטיילים
+    // שירת המצב הנוכחי של הקבצים והסטיילים
     const originalFiles = [...files];
     const originalStyle = {
       height: element.style.height,
@@ -272,7 +272,7 @@ function App() {
       const rowHeight = rows.length > 0 ? rows[0].offsetHeight : 0;
       const actualHeight = headerGroup.offsetHeight + (rowHeight * rows.length);
 
-      // עדכון סטיילים לצילום
+      // עדכ��ן סטיילים לצילום
       element.style.height = `${actualHeight}px`;
       element.style.overflow = 'hidden';
       element.style.maxHeight = 'none';
@@ -302,12 +302,12 @@ function App() {
               row.classList.remove('selected');
             });
 
-            // הוספת אינדיקציה לסוג הסינון
+            // עדכון הטקסט לפשוט יותר
             const headerInfo = clonedDoc.querySelector('.folder-info');
             if (headerInfo) {
               const filterIndicator = document.createElement('div');
               filterIndicator.className = 'filter-indicator';
-              filterIndicator.textContent = `מציג ${fileType === 'audio' ? 'קבצי שמע' : 'קבצי וידאו'} בלבד`;
+              filterIndicator.textContent = fileType === 'audio' ? 'קבצי שמע' : 'קבצי וידאו';
               headerInfo.appendChild(filterIndicator);
             }
           }
@@ -368,6 +368,9 @@ function App() {
           <div className="sidebar">
             <div className="path-section">
               <div className="path-controls">
+                <button onClick={handleLogout} className="logout-button">
+                  התנתק
+                </button>
                 <form onSubmit={handleManualPathSubmit} className="manual-path">
                   <input
                     type="text"
@@ -491,9 +494,6 @@ function App() {
               </div>
             </div>
           )}
-          <button onClick={handleLogout} className="logout-button">
-            התנתק
-          </button>
         </>
       )}
     </div>
