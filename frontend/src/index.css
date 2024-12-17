@@ -1171,6 +1171,8 @@ button:disabled {
 }
 
 .logout-button:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Add these styles */
