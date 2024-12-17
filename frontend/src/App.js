@@ -9,9 +9,12 @@ import Login from './components/Login';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const ROOT_FOLDER = "C:\\";
+const DEFAULT_DOWNLOADS_PATH = `C:\\Users\\${process.env.USERNAME || 'Public'}\\Downloads`;
 
 function App() {
-  const defaultPath = process.env.REACT_APP_DEFAULT_PATH || 'C:\\Users\\Administrator\\Downloads\\Telegram_Desktop';
+  const [defaultPath, setDefaultPath] = useState(() => {
+    return localStorage.getItem('defaultPath') || DEFAULT_DOWNLOADS_PATH;
+  });
   const [currentPath, setCurrentPath] = useState(defaultPath);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [files, setFiles] = useState([]);
@@ -91,6 +94,10 @@ function App() {
     document.documentElement.style.setProperty('--border-width', `${tableSettings.borderWidth}px`);
     document.documentElement.style.setProperty('--border-radius', `${tableSettings.borderRadius}px`);
   }, [tableSettings]);
+
+  useEffect(() => {
+    setCurrentPath(defaultPath);
+  }, [defaultPath]);
 
   const loadFiles = async () => {
     setLoading(true);
@@ -272,7 +279,7 @@ function App() {
       const rowHeight = rows.length > 0 ? rows[0].offsetHeight : 0;
       const actualHeight = headerGroup.offsetHeight + (rowHeight * rows.length);
 
-      // עדכ��ן סטיילים לצילום
+      // עדכון סטיילים לצילום
       element.style.height = `${actualHeight}px`;
       element.style.overflow = 'hidden';
       element.style.maxHeight = 'none';
@@ -359,6 +366,11 @@ function App() {
     setUser(null);
   };
 
+  const handleDefaultPathChange = (newPath) => {
+    localStorage.setItem('defaultPath', newPath);
+    setDefaultPath(newPath);
+  };
+
   return (
     <div className="app">
       {!user ? (
@@ -420,6 +432,8 @@ function App() {
                 onSettingsChange={handleSettingsChange}
                 exportFormat={exportFormat}
                 onExportFormatChange={handleExportFormat}
+                defaultPath={defaultPath}
+                onDefaultPathChange={handleDefaultPathChange}
               />          
               <div className="content-table-wrapper">
                 {loading ? (

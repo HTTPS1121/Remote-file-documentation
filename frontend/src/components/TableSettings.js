@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsChange, exportFormat, onExportFormatChange }) {
+function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsChange, exportFormat, onExportFormatChange, defaultPath, onDefaultPathChange }) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -194,6 +194,22 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
                     <span>px</span>
                   </div>
                 </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="settings-group">
+            <h3>נתיב ברירת מחדל</h3>
+            <div className="default-path-settings">
+              <input
+                type="text"
+                value={defaultPath}
+                onChange={(e) => onDefaultPathChange(e.target.value)}
+                placeholder="הכנס נתיב ברירת מחדל"
+                dir="ltr"
+              />
+              <div className="path-hint">
+                נתיב זה ישמש בכל פתיחה מחדש של האפליקציה
               </div>
             </div>
           </div>

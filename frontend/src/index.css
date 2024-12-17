@@ -1172,3 +1172,31 @@ button:disabled {
 
 .logout-button:active {
 }
+
+/* Add these styles */
+.default-path-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.default-path-settings input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.default-path-settings input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(41, 98, 255, 0.1);
+  outline: none;
+}
+
+.path-hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
