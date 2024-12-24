@@ -100,25 +100,31 @@ function App() {
   }, [defaultPath]);
 
   const loadFiles = async () => {
+    if (!currentPath) return;
+    
     setLoading(true);
     setError(null);
+    
     try {
       const response = await fetch(`${API_URL}/list-directory`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        body: JSON.stringify({
+          path: currentPath,
+          fileTypes: selectedTypes
+        })
       });
-      
-      if (response.status === 401) {
-        handleLogout();
-        return;
-      }
+
+      if (!response.ok) throw new Error('Failed to load files');
       
       const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setFiles(data.files);
+      setFiles(data.files || []);
     } catch (err) {
       setError(err.message);
+      console.error('Error loading files:', err);
     } finally {
       setLoading(false);
     }

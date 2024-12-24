@@ -92,11 +92,16 @@ def normalize_extension(ext):
             return main_ext
     return ext
 
-@app.route('/list-directory', methods=['POST'])
+@app.route('/list-directory', methods=['GET', 'POST'])
 @authenticate()
 def list_directory():
-    requested_path = request.json.get('path', '')
-    file_types = request.json.get('fileTypes', [])
+    # קבלת הפרמטרים בהתאם לסוג הבקשה
+    if request.method == 'GET':
+        requested_path = request.args.get('path', '')
+        file_types = request.args.get('types', '').split(',') if request.args.get('types') else []
+    else:
+        requested_path = request.json.get('path', '')
+        file_types = request.json.get('fileTypes', [])
     
     if requested_path and requested_path[1:3] == ':\\':
         full_path = requested_path
