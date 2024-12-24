@@ -103,18 +103,16 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      };
       const response = await fetch(`${API_URL}/list-directory`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ 
-          path: currentPath,
-          fileTypes: selectedTypes 
-        })
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
+      
+      if (response.status === 401) {
+        handleLogout();
+        return;
+      }
       
       const data = await response.json();
       if (data.error) throw new Error(data.error);
@@ -370,6 +368,71 @@ function App() {
     localStorage.setItem('defaultPath', newPath);
     setDefaultPath(newPath);
   };
+
+  // פונקציה שבודקת אם הטוקן קרוב לפקיעה
+  const isTokenExpiringSoon = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiryTime = payload.exp * 1000; // convert to milliseconds
+      const timeUntilExpiry = expiryTime - Date.now();
+      
+      // מחזיר true אם נשארו פחות מ-24 שעות
+      return timeUntilExpiry < 24 * 60 * 60 * 1000;
+    } catch {
+      return false;
+    }
+  };
+
+  // פונקציה שמחדשת את הטוקן
+  const refreshToken = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        console.error('שגיאה בחידוש טוקן:', data.error);
+        if (response.status === 401) {
+          handleLogout();
+        }
+        return;
+      }
+
+      const data = await response.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+    } catch (err) {
+      console.error('שגיאת רשת בחידוש טוקן:', err);
+      // לא נתנתק במקרה של שגיאת רשת, ננסה שוב בפעם הבאה
+    }
+  };
+
+  // בדיקה תקופתית של תוקף הטוקן
+  useEffect(() => {
+    if (!user) return;
+
+    const checkToken = async () => {
+      if (isTokenExpiringSoon()) {
+        await refreshToken();
+      }
+    };
+
+    // בדיקה כל שעה
+    const interval = setInterval(checkToken, 60 * 60 * 1000);
+    
+    // בדיקה ראשונית
+    checkToken();
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <div className="app">

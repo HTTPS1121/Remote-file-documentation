@@ -55,7 +55,7 @@ def init_auth_routes(app):
         token = jwt.encode({
             'user': username,
             'role': user['role'],
-            'exp': datetime.utcnow() + timedelta(hours=24)
+            'exp': datetime.utcnow() + timedelta(days=30)
         }, SECRET_KEY)
 
         return jsonify({
@@ -70,6 +70,34 @@ def init_auth_routes(app):
     @authenticate()
     def verify_token():
         return jsonify({'valid': True}) 
+
+    @app.route('/api/refresh-token', methods=['POST'])
+    @authenticate()
+    def refresh_token():
+        token = request.headers.get('Authorization').split(' ')[1]
+        try:
+            # בדיקה שהטוקן תקין ולא פג
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            
+            # בדיקה שנשאר לפחות יום אחד לפני פקיעה
+            exp_timestamp = data['exp']
+            current_timestamp = datetime.utcnow().timestamp()
+            if exp_timestamp - current_timestamp < 24 * 60 * 60:
+                # יצירת טוקן חדש רק אם באמת צריך
+                new_token = jwt.encode({
+                    'user': data['user'],
+                    'role': data['role'],
+                    'exp': datetime.utcnow() + timedelta(days=30)
+                }, SECRET_KEY)
+                return jsonify({'token': new_token})
+            
+            # אם הטוקן עדיין תקף לזמן רב, נחזיר את אותו טוקן
+            return jsonify({'token': token})
+            
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'הטוקן פג תוקף'}), 401
+        except:
+            return jsonify({'error': 'טוקן לא תקין'}), 401
 
 def update_passwords():
     with open('users.json', 'r') as f:
