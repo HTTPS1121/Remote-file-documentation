@@ -27,14 +27,27 @@ def authenticate():
             token = request.headers.get('Authorization')
             
             if not token:
-                return jsonify({'error': 'חסר טוקן'}), 401
+                return jsonify({'error': 'חסר טוקן', 'code': 'NO_TOKEN'}), 401
 
             try:
                 token = token.split(' ')[1]  # להסיר את ה-Bearer
                 data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+                
+                # בדיקה אם הטוקן עומד לפוג בקרוב (פחות מ-24 שעות)
+                exp_timestamp = data['exp']
+                current_timestamp = datetime.utcnow().timestamp()
+                time_until_expiry = exp_timestamp - current_timestamp
+                
+                if time_until_expiry < 24 * 60 * 60:
+                    return jsonify({'error': 'טוקן עומד לפוג', 'code': 'TOKEN_EXPIRING_SOON'}), 401
+                    
                 return f(*args, **kwargs)
-            except:
-                return jsonify({'error': 'טוקן לא תקין'}), 401
+            except jwt.ExpiredSignatureError:
+                return jsonify({'error': 'טוקן פג תוקף', 'code': 'TOKEN_EXPIRED'}), 401
+            except jwt.InvalidTokenError:
+                return jsonify({'error': 'טוקן לא תקין', 'code': 'INVALID_TOKEN'}), 401
+            except Exception:
+                return jsonify({'error': 'שגיאה באימות', 'code': 'AUTH_ERROR'}), 401
 
         return decorated_function
     return decorator
@@ -95,9 +108,11 @@ def init_auth_routes(app):
             return jsonify({'token': token})
             
         except jwt.ExpiredSignatureError:
-            return jsonify({'error': 'הטוקן פג תוקף'}), 401
-        except:
-            return jsonify({'error': 'טוקן לא תקין'}), 401
+            return jsonify({'error': 'טוקן פג תוקף', 'code': 'TOKEN_EXPIRED'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'טוקן לא תקין', 'code': 'INVALID_TOKEN'}), 401
+        except Exception as e:
+            return jsonify({'error': 'שגיאה באימות', 'code': 'AUTH_ERROR'}), 401
 
 def update_passwords():
     with open('users.json', 'r') as f:

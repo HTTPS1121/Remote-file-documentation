@@ -99,6 +99,39 @@ function App() {
     setCurrentPath(defaultPath);
   }, [defaultPath]);
 
+  const handleApiError = async (response) => {
+    if (response.status === 401) {
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        handleLogout();
+        return false;
+      }
+      
+      if (!data.code) {
+        handleLogout();
+        return false;
+      }
+
+      switch(data.code) {
+        case 'TOKEN_EXPIRED':
+        case 'TOKEN_EXPIRING_SOON':
+          const refreshResult = await refreshToken();
+          if (!refreshResult) {
+            handleLogout();
+            return false;
+          }
+          return true;
+          
+        default:
+          handleLogout();
+          return false;
+      }
+    }
+    return false;
+  };
+
   const loadFiles = async () => {
     if (!currentPath) return;
     
@@ -106,25 +139,37 @@ function App() {
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/list-directory`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          path: currentPath,
-          fileTypes: selectedTypes
-        })
-      });
+      const makeRequest = async () => {
+        const response = await fetch(`${API_URL}/list-directory`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            path: currentPath,
+            fileTypes: selectedTypes
+          })
+        });
 
-      if (!response.ok) throw new Error('Failed to load files');
-      
-      const data = await response.json();
-      setFiles(data.files || []);
+        if (!response.ok) {
+          if (response.status === 401) {
+            const shouldRetry = await handleApiError(response);
+            if (shouldRetry) {
+              return makeRequest();
+            }
+            return;
+          }
+          throw new Error('Failed to load files');
+        }
+        
+        const data = await response.json();
+        setFiles(data.files || []);
+      };
+
+      await makeRequest();
     } catch (err) {
       setError(err.message);
-      console.error('Error loading files:', err);
     } finally {
       setLoading(false);
     }
@@ -382,10 +427,8 @@ function App() {
     
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiryTime = payload.exp * 1000; // convert to milliseconds
+      const expiryTime = payload.exp * 1000;
       const timeUntilExpiry = expiryTime - Date.now();
-      
-      // מחזיר true אם נשארו פחות מ-24 שעות
       return timeUntilExpiry < 24 * 60 * 60 * 1000;
     } catch {
       return false;
@@ -403,21 +446,20 @@ function App() {
       });
       
       if (!response.ok) {
-        const data = await response.json();
-        console.error('שגיאה בחידוש טוקן:', data.error);
         if (response.status === 401) {
           handleLogout();
         }
-        return;
+        return false;
       }
 
       const data = await response.json();
       if (data.token) {
         localStorage.setItem('token', data.token);
+        return true;
       }
-    } catch (err) {
-      console.error('שגיאת רשת בחידוש טוקן:', err);
-      // לא נתנתק במקרה של שגיאת רשת, ננסה שוב בפעם הבאה
+      return false;
+    } catch {
+      return false;
     }
   };
 
@@ -431,12 +473,8 @@ function App() {
       }
     };
 
-    // בדיקה כל שעה
     const interval = setInterval(checkToken, 60 * 60 * 1000);
-    
-    // בדיקה ראשונית
     checkToken();
-
     return () => clearInterval(interval);
   }, [user]);
 
