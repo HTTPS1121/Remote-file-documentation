@@ -2,32 +2,56 @@ import React, { useEffect, useState } from 'react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-function FileExplorer({ currentPath, onPathChange, onError }) {
+function FileExplorer({ currentPath, onPathChange, onError, user }) {
   const [directories, setDirectories] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadDirectories();
-  }, [currentPath]);
+    if (user) {
+      loadDirectories();
+    }
+  }, [currentPath, user]);
 
   const loadDirectories = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const token = window.getStoredToken();
+    if (!token) {
+      window.handleLogout();
+      return;
+    }
 
     try {
-      const response = await fetch(`${API_URL}/list-directories`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ path: currentPath })
-      });
-      
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setDirectories(data.directories);
-      setError(null);
+      const makeRequest = async () => {
+        const response = await fetch(`${API_URL}/list-directories`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ path: currentPath })
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            const data = await response.json();
+            if (data.code === 'TOKEN_EXPIRED' || data.code === 'TOKEN_EXPIRING_SOON' || data.code === 'INVALID_TOKEN') {
+              const refreshResult = await window.refreshToken();
+              if (refreshResult) {
+                return makeRequest();
+              }
+            }
+            window.handleLogout();
+            return;
+          }
+          throw new Error('Failed to load directories');
+        }
+        
+        const data = await window.handleResponse(response);
+        if (data.error) throw new Error(data.error);
+        setDirectories(data.directories);
+        setError(null);
+      };
+
+      await makeRequest();
     } catch (err) {
       setError(err.message);
       setDirectories([]);

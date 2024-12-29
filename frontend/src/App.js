@@ -11,6 +11,102 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const ROOT_FOLDER = "C:\\";
 const DEFAULT_DOWNLOADS_PATH = `C:\\Users\\${process.env.USERNAME || 'Public'}\\Downloads`;
 
+// פונקציות גלובליות לטיפול בטוקן
+window.getStoredToken = () => {
+  const localToken = localStorage.getItem('token');
+  if (localToken) return localToken;
+  return sessionStorage.getItem('token');
+};
+
+window.refreshToken = async () => {
+  try {
+    console.log('Attempting to refresh token...');
+    const currentToken = window.getStoredToken();
+    if (!currentToken) {
+      console.log('No token to refresh');
+      return false;
+    }
+
+    const response = await fetch(`${API_URL}/api/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${currentToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.log('Error refreshing token:', response.status);
+      const data = await response.json();
+      console.log('Error details:', data);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('Got refresh response:', data);
+    
+    if (data.token) {
+      // שמירת הטוקן החדש באותו מקום שבו היה הטוקן הישן
+      if (localStorage.getItem('token')) {
+        localStorage.setItem('token', data.token);
+      } else {
+        sessionStorage.setItem('token', data.token);
+      }
+      console.log('Token refreshed successfully');
+      return true;
+    }
+    
+    console.log('No token in refresh response');
+    return false;
+  } catch (err) {
+    console.error('Error refreshing token:', err);
+    return false;
+  }
+};
+
+window.handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  if (window.setUserState) {
+    window.setUserState(null);
+  }
+};
+
+window.isTokenExpiringSoon = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (!token) {
+    console.log('אין טוקן');
+    return false;
+  }
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiryTime = payload.exp * 1000;
+    const timeUntilExpiry = expiryTime - Date.now();
+    const hoursLeft = timeUntilExpiry / (1000 * 60 * 60);
+    console.log(`נשארו ${hoursLeft.toFixed(2)} שעות עד לפקיעת הטוקן`);
+    return timeUntilExpiry < 24 * 60 * 60 * 1000;
+  } catch (err) {
+    console.error('שגיאה בבדיקת תוקף הטוקן:', err);
+    return false;
+  }
+};
+
+window.handleResponse = async (response) => {
+  const data = await response.json();
+  console.log('תשובה מהשרת:', data);
+  if (data.new_token) {
+    console.log('התקבל טוקן חדש');
+    if (localStorage.getItem('token')) {
+      localStorage.setItem('token', data.new_token);
+    } else {
+      sessionStorage.setItem('token', data.new_token);
+    }
+  }
+  return data;
+};
+
 function App() {
   const [defaultPath, setDefaultPath] = useState(() => {
     return localStorage.getItem('defaultPath') || DEFAULT_DOWNLOADS_PATH;
@@ -46,7 +142,10 @@ function App() {
   });
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (savedUser) return JSON.parse(savedUser);
+    
+    const sessionUser = sessionStorage.getItem('user');
+    return sessionUser ? JSON.parse(sessionUser) : null;
   });
 
   useEffect(() => {
@@ -56,8 +155,10 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    loadFiles();
-  }, [currentPath, selectedTypes]);
+    if (user) {
+      loadFiles();
+    }
+  }, [currentPath, selectedTypes, user]);
 
   useEffect(() => {
     localStorage.setItem('exportFormat', exportFormat);
@@ -103,48 +204,51 @@ function App() {
     if (response.status === 401) {
       let data;
       try {
-        data = await response.json();
+        data = await response.clone().json();
       } catch {
-        handleLogout();
+        console.log('Failed to parse response');
+        window.handleLogout();
         return false;
       }
       
-      if (!data.code) {
-        handleLogout();
-        return false;
-      }
-
-      switch(data.code) {
-        case 'TOKEN_EXPIRED':
-        case 'TOKEN_EXPIRING_SOON':
-          const refreshResult = await refreshToken();
-          if (!refreshResult) {
-            handleLogout();
-            return false;
-          }
+      console.log('Got 401 error with code:', data.code);
+      
+      // אם הטוקן לא תקין או פג תוקף, ננסה לחדש
+      if (data.code === 'TOKEN_EXPIRED' || data.code === 'TOKEN_EXPIRING_SOON' || data.code === 'INVALID_TOKEN') {
+        console.log('Token needs refresh, attempting...');
+        const refreshResult = await window.refreshToken();
+        console.log('Refresh result:', refreshResult);
+        if (refreshResult) {
           return true;
-          
-        default:
-          handleLogout();
-          return false;
+        }
       }
+      
+      console.log('Token refresh failed or not possible, logging out');
+      window.handleLogout();
+      return false;
     }
     return false;
   };
 
   const loadFiles = async () => {
-    if (!currentPath) return;
+    if (!currentPath || !user) return;
     
     setLoading(true);
     setError(null);
     
     try {
       const makeRequest = async () => {
+        const token = window.getStoredToken();
+        if (!token) {
+          window.handleLogout();
+          return;
+        }
+
         const response = await fetch(`${API_URL}/list-directory`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             path: currentPath,
@@ -163,7 +267,7 @@ function App() {
           throw new Error('Failed to load files');
         }
         
-        const data = await response.json();
+        const data = await handleResponse(response);
         setFiles(data.files || []);
       };
 
@@ -400,7 +504,11 @@ function App() {
     }
   };
 
-  // הוספת פונקציות עזר
+  const handleDefaultPathChange = (newPath) => {
+    localStorage.setItem('defaultPath', newPath);
+    setDefaultPath(newPath);
+  };
+
   const hasAudioFiles = (files) => {
     return files.some(file => file.type?.startsWith('audio/'));
   };
@@ -409,67 +517,13 @@ function App() {
     return files.some(file => file.type?.startsWith('video/'));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-  };
-
-  const handleDefaultPathChange = (newPath) => {
-    localStorage.setItem('defaultPath', newPath);
-    setDefaultPath(newPath);
-  };
-
-  // פונקציה שבודקת אם הטוקן קרוב לפקיעה
-  const isTokenExpiringSoon = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return false;
-    
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiryTime = payload.exp * 1000;
-      const timeUntilExpiry = expiryTime - Date.now();
-      return timeUntilExpiry < 24 * 60 * 60 * 1000;
-    } catch {
-      return false;
-    }
-  };
-
-  // פונקציה שמחדשת את הטוקן
-  const refreshToken = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          handleLogout();
-        }
-        return false;
-      }
-
-      const data = await response.json();
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
   // בדיקה תקופתית של תוקף הטוקן
   useEffect(() => {
     if (!user) return;
 
     const checkToken = async () => {
-      if (isTokenExpiringSoon()) {
-        await refreshToken();
+      if (window.isTokenExpiringSoon()) {
+        await window.refreshToken();
       }
     };
 
@@ -477,6 +531,13 @@ function App() {
     checkToken();
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    window.setUserState = setUser;
+    return () => {
+      window.setUserState = null;
+    };
+  }, []);
 
   return (
     <div className="app">
@@ -487,7 +548,7 @@ function App() {
           <div className="sidebar">
             <div className="path-section">
               <div className="path-controls">
-                <button onClick={handleLogout} className="logout-button">
+                <button onClick={window.handleLogout} className="logout-button">
                   התנתק
                 </button>
                 <form onSubmit={handleManualPathSubmit} className="manual-path">
@@ -522,7 +583,11 @@ function App() {
                   חזור אחורה
                 </button>
               </div>
-              <FileExplorer currentPath={currentPath} onPathChange={setCurrentPath} />
+              <FileExplorer 
+                currentPath={currentPath} 
+                onPathChange={setCurrentPath} 
+                user={user}
+              />
             </div>
             
             <div className="filter-section">

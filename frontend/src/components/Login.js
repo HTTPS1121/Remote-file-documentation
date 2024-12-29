@@ -7,6 +7,9 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('rememberMe') === 'true';
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +20,7 @@ function Login({ onLogin }) {
       const response = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, rememberMe })
       });
 
       const data = await response.json();
@@ -26,8 +29,16 @@ function Login({ onLogin }) {
         throw new Error(data.error || 'שגיאה בהתחברות');
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('rememberMe', rememberMe);
+      
+      if (rememberMe) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+      }
+      
       onLogin(data.user);
       
     } catch (err) {
@@ -62,6 +73,18 @@ function Login({ onLogin }) {
             disabled={loading}
             placeholder="הכנס סיסמה"
           />
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              disabled={loading}
+            />
+            זכור אותי
+          </label>
         </div>
 
         {error && <div className="error-message">{error}</div>}
