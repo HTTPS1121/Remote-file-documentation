@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Login.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -49,50 +50,61 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit} className="login-form">
-        <h2>התחברות למערכת</h2>
+    <div className="login-wrapper">
+      <div className="login-container">
+        <div className="login-header">
+          <h1>התחברות למערכת</h1>
+        </div>
         
-        <div className="form-group">
-          <label>שם משתמש</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            disabled={loading}
-            placeholder="הכנס שם משתמש"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>סיסמה</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-            placeholder="הכנס סיסמה"
-          />
-        </div>
-
-        <div className="form-group checkbox-group">
-          <label>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="username">שם משתמש</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
+              className={error ? 'error' : ''}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">סיסמה</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              className={error ? 'error' : ''}
+              required
+            />
+          </div>
+          
+          <div className="remember-me">
+            <label htmlFor="remember">זכור אותי</label>
             <input
               type="checkbox"
+              id="remember"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
               disabled={loading}
             />
-            זכור אותי
-          </label>
-        </div>
+          </div>
 
-        {error && <div className="error-message">{error}</div>}
-
-        <button type="submit" disabled={loading || !username || !password}>
-          {loading ? 'מתחבר...' : 'התחבר'}
-        </button>
-      </form>
+          {error && <div className="error-message">{error}</div>}
+          
+          <button 
+            type="submit" 
+            className="submit-btn"
+            disabled={loading || !username || !password}
+          >
+            {loading ? 'מתחבר...' : 'התחבר'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
