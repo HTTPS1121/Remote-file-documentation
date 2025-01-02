@@ -53,6 +53,7 @@ function Login({ onLogin }) {
     <div className="login-wrapper">
       <div className="login-container">
         <div className="login-header">
+          <img src="/favicon.svg" alt="לוגו המערכת" className="login-logo" />
           <h1>התחברות למערכת</h1>
         </div>
         
