@@ -143,7 +143,8 @@ function App() {
         afterDash: true,
         brackets: false,
         extension: false
-      }
+      },
+      exportPadding: 0
     };
   });
   const [user, setUser] = useState(() => {
@@ -300,12 +301,14 @@ function App() {
       const originalStyle = {
         height: element.style.height,
         overflow: element.style.overflow,
-        maxHeight: element.style.maxHeight
+        maxHeight: element.style.maxHeight,
+        paddingBottom: element.style.paddingBottom
       };
 
       element.style.height = 'auto';
       element.style.overflow = 'visible';
       element.style.maxHeight = 'none';
+      element.style.paddingBottom = `${tableSettings.exportPadding}px`;
 
       const canvas = await html2canvas(element, {
         useCORS: true,
@@ -319,6 +322,7 @@ function App() {
           clonedElement.style.height = 'auto';
           clonedElement.style.overflow = 'visible';
           clonedElement.style.maxHeight = 'none';
+          clonedElement.style.paddingBottom = `${tableSettings.exportPadding}px`;
           
           // הסרת הסימון הכחול מכל השורות
           clonedDoc.querySelectorAll('.file-row').forEach(row => {
@@ -345,6 +349,7 @@ function App() {
       element.style.height = originalStyle.height;
       element.style.overflow = originalStyle.overflow;
       element.style.maxHeight = originalStyle.maxHeight;
+      element.style.paddingBottom = originalStyle.paddingBottom;
 
       setPreviewImage(canvas.toDataURL(`image/${exportFormat}`, exportFormat === 'jpg' ? 0.9 : 1));
       setShowPreview(true);
@@ -402,14 +407,15 @@ function App() {
       return null;
     }
 
-    // שירת המצב הנוכחי של הקבצים והסטיילים
+    // שמירת המצב הנוכחי של הקבצים והסטיילים
     const originalFiles = [...files];
     const originalStyle = {
       height: element.style.height,
       overflow: element.style.overflow,
       maxHeight: element.style.maxHeight,
       padding: element.style.padding,
-      margin: element.style.margin
+      margin: element.style.margin,
+      paddingBottom: element.style.paddingBottom
     };
     
     try {
@@ -431,36 +437,39 @@ function App() {
       // המתנה לרינדור מחדש
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // חישוב הגובה האמיתי
+      // חישוב הגובה האמיתי כולל פאדינג
       const headerGroup = element.querySelector('.header-group');
       const table = element.querySelector('.content-table');
       const rows = element.querySelectorAll('.file-row');
       const rowHeight = rows.length > 0 ? rows[0].offsetHeight : 0;
-      const actualHeight = headerGroup.offsetHeight + (rowHeight * rows.length);
+      const contentHeight = headerGroup.offsetHeight + (rowHeight * rows.length);
+      const totalHeight = contentHeight + tableSettings.exportPadding;
 
       // עדכון סטיילים לצילום
-      element.style.height = `${actualHeight}px`;
+      element.style.height = `${totalHeight}px`;
       element.style.overflow = 'hidden';
       element.style.maxHeight = 'none';
       element.style.padding = '0';
       element.style.margin = '0';
+      element.style.paddingBottom = `${tableSettings.exportPadding}px`;
 
       // יצירת התמונה
       const canvas = await html2canvas(element, {
         useCORS: true,
         scale: 2,
         scrollX: 0,
-        height: actualHeight,
-        windowHeight: actualHeight,
+        height: totalHeight,
+        windowHeight: totalHeight,
         windowWidth: document.documentElement.offsetWidth,
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.querySelector('.content-section');
           if (clonedElement) {
-            clonedElement.style.height = `${actualHeight}px`;
+            clonedElement.style.height = `${totalHeight}px`;
             clonedElement.style.overflow = 'hidden';
             clonedElement.style.maxHeight = 'none';
             clonedElement.style.padding = '0';
             clonedElement.style.margin = '0';
+            clonedElement.style.paddingBottom = `${tableSettings.exportPadding}px`;
             
             // ניקוי נוסף
             clonedDoc.querySelectorAll('.file-row').forEach(row => {

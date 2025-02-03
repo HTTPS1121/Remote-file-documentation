@@ -86,6 +86,21 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
                 <span className="format-label">PNG</span>
               </label>
             </div>
+            <div className="export-padding-settings">
+              <label>
+                <span>פאדינג תחתון בייצוא</span>
+                <div className="input-with-unit">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={tableSettings.exportPadding}
+                    onChange={(e) => onSettingsChange('exportPadding', parseInt(e.target.value) || 0)}
+                  />
+                  <span>px</span>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="settings-group">
