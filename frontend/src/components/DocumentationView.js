@@ -111,12 +111,43 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
   const formatFileName = (file) => {
     if (file.isDirectory) return file.name;
     
-    if (!tableSettings.showExtensions) {
-      const lastDotIndex = file.name.lastIndexOf('.');
-      return lastDotIndex > 0 ? file.name.substring(0, lastDotIndex) : file.name;
+    let displayName = file.name;
+    let extension = '';
+    
+    // שמירת הסיומת אם צריך להציג אותה
+    const lastDotIndex = displayName.lastIndexOf('.');
+    if (lastDotIndex > 0) {
+      extension = displayName.substring(lastDotIndex);
+      displayName = displayName.substring(0, lastDotIndex);
     }
     
-    return file.name;
+    // אם לא צריך להציג סיומות, extension יישאר ריק
+    if (!tableSettings.showExtensions) {
+      extension = '';
+    }
+    
+    const lastDashIndex = displayName.lastIndexOf('-');
+    if (lastDashIndex === -1) return displayName + extension;
+
+    const beforeDash = displayName.substring(0, lastDashIndex).trim();
+    let afterDash = displayName.substring(lastDashIndex + 1).trim();
+    
+    // טיפול בסוגריים
+    let brackets = '';
+    const bracketsMatch = afterDash.match(/\s*\([^)]*\)\s*$/);
+    if (bracketsMatch) {
+      brackets = bracketsMatch[0];
+      afterDash = afterDash.substring(0, afterDash.length - brackets.length).trim();
+    }
+    
+    return (
+      <span>
+        {beforeDash + ' - '}
+        <strong>{afterDash}</strong>
+        {brackets && <span>{brackets}</span>}
+        {extension && <span>{extension}</span>}
+      </span>
+    );
   };
 
   return (
