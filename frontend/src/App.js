@@ -137,7 +137,13 @@ function App() {
       horizontalLineWidth: 1,
       verticalLineWidth: 1,
       borderWidth: 1,
-      borderRadius: 8
+      borderRadius: 8,
+      boldParts: {
+        beforeDash: false,
+        afterDash: true,
+        brackets: false,
+        extension: false
+      }
     };
   });
   const [user, setUser] = useState(() => {

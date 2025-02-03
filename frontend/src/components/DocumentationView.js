@@ -111,6 +111,14 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
   const formatFileName = (file) => {
     if (file.isDirectory) return file.name;
     
+    // ברירת מחדל ל-boldParts אם לא קיים
+    const boldParts = tableSettings.boldParts || {
+      beforeDash: false,
+      afterDash: true,
+      brackets: false,
+      extension: false
+    };
+    
     let displayName = file.name;
     let extension = '';
     
@@ -127,7 +135,14 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
     }
     
     const lastDashIndex = displayName.lastIndexOf('-');
-    if (lastDashIndex === -1) return displayName + extension;
+    if (lastDashIndex === -1) {
+      return (
+        <span>
+          {boldParts.beforeDash ? <strong>{displayName}</strong> : displayName}
+          {extension && (boldParts.extension ? <strong>{extension}</strong> : extension)}
+        </span>
+      );
+    }
 
     const beforeDash = displayName.substring(0, lastDashIndex).trim();
     let afterDash = displayName.substring(lastDashIndex + 1).trim();
@@ -142,10 +157,10 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
     
     return (
       <span>
-        {beforeDash + ' - '}
-        <strong>{afterDash}</strong>
-        {brackets && <span>{brackets}</span>}
-        {extension && <span>{extension}</span>}
+        {boldParts.beforeDash ? <strong>{beforeDash + ' - '}</strong> : beforeDash + ' - '}
+        {boldParts.afterDash ? <strong>{afterDash}</strong> : afterDash}
+        {brackets && (boldParts.brackets ? <strong>{brackets}</strong> : brackets)}
+        {extension && (boldParts.extension ? <strong>{extension}</strong> : extension)}
       </span>
     );
   };

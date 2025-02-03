@@ -3,6 +3,14 @@ import React, { useState, useEffect } from 'react';
 function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsChange, exportFormat, onExportFormatChange, defaultPath, onDefaultPathChange }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // ברירת מחדל ל-boldParts אם לא קיים
+  const boldParts = tableSettings.boldParts || {
+    beforeDash: false,
+    afterDash: true,
+    brackets: false,
+    extension: false
+  };
+
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === 'Escape') {
@@ -129,6 +137,56 @@ function TableSettings({ onWidthChange, columnWidths, tableSettings, onSettingsC
                   onChange={(e) => onSettingsChange('showExtensions', e.target.checked)}
                 />
                 הצג סיומות קבצים
+              </label>
+            </div>
+          </div>
+
+          <div className="settings-group">
+            <h3>הדגשת חלקי שם הקובץ</h3>
+            <div className="bold-parts-settings">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={boldParts.beforeDash}
+                  onChange={(e) => onSettingsChange('boldParts', { 
+                    ...boldParts, 
+                    beforeDash: e.target.checked 
+                  })}
+                />
+                החלק לפני המקף האחרון
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={boldParts.afterDash}
+                  onChange={(e) => onSettingsChange('boldParts', { 
+                    ...boldParts, 
+                    afterDash: e.target.checked 
+                  })}
+                />
+                החלק אחרי המקף האחרון
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={boldParts.brackets}
+                  onChange={(e) => onSettingsChange('boldParts', { 
+                    ...boldParts, 
+                    brackets: e.target.checked 
+                  })}
+                />
+                סוגריים
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={boldParts.extension}
+                  onChange={(e) => onSettingsChange('boldParts', { 
+                    ...boldParts, 
+                    extension: e.target.checked 
+                  })}
+                />
+                סיומת הקובץ
               </label>
             </div>
           </div>
