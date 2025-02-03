@@ -539,6 +539,52 @@ function App() {
     };
   }, []);
 
+  const refreshFiles = async () => {
+    if (!currentPath || !user) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = window.getStoredToken();
+      if (!token) {
+        window.handleLogout();
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/list-directory`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          path: currentPath,
+          fileTypes: selectedTypes
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          const shouldRetry = await handleApiError(response);
+          if (shouldRetry) {
+            return refreshFiles();
+          }
+          return;
+        }
+        throw new Error('Failed to load files');
+      }
+      
+      const data = await handleResponse(response);
+      setFiles(data.files || []);
+    } catch (err) {
+      setError('שגיאה בטעינת הקבצים');
+      console.error('Error refreshing files:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app">
       {!user ? (
@@ -623,6 +669,28 @@ function App() {
             </div>
 
             <div className="preview-section">
+              <div className="tooltip-container">
+                <button 
+                  className="primary-button"
+                  onClick={refreshFiles}
+                  disabled={loading}
+                >
+                  <svg 
+                    style={{ 
+                      width: '20px', 
+                      height: '20px',
+                      fill: 'white',
+                      transform: loading ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.3s ease'
+                    }} 
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                  </svg>
+                </button>
+                <span className="tooltip">רענון רשימת הקבצים</span>
+              </div>
+
               <div className="tooltip-container">
                 <button 
                   className="primary-button"
