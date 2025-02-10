@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-function FileExplorer({ currentPath, onPathChange, onError, user }) {
+const FileExplorer = forwardRef(({ currentPath, onPathChange, onError, user }, ref) => {
   const [directories, setDirectories] = useState([]);
   const [error, setError] = useState(null);
+
+  useImperativeHandle(ref, () => ({
+    refreshDirectories: loadDirectories
+  }));
 
   useEffect(() => {
     if (user) {
@@ -81,6 +85,6 @@ function FileExplorer({ currentPath, onPathChange, onError, user }) {
       </div>
     </div>
   );
-}
+});
 
 export default FileExplorer; 

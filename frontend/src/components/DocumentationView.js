@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
-function DocumentationView({ files, currentPath, onPathChange, onError, tableSettings }) {
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+const DocumentationView = forwardRef(({ files, currentPath, onPathChange, onError, tableSettings, selectedTypes }, ref) => {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    startRefreshing: () => setIsRefreshing(true),
+    stopRefreshing: () => setIsRefreshing(false)
+  }));
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -166,7 +174,7 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
   };
 
   return (
-    <div className="content-section">
+    <div className={`content-section ${isRefreshing ? 'refreshing' : ''}`}>
       <div className="header-group">
         <div className="folder-info">
           <div className="folder-name">{getFolderName()}</div>
@@ -213,6 +221,6 @@ function DocumentationView({ files, currentPath, onPathChange, onError, tableSet
       </div>
     </div>
   );
-}
+});
 
 export default DocumentationView; 

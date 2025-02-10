@@ -549,6 +549,7 @@ button:disabled {
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--border-radius);
+  position: relative;
 }
 
 .header-group {
@@ -1218,4 +1219,42 @@ button:disabled {
   font-size: 0.8rem;
   color: #666;
   margin-top: 0.25rem;
+}
+
+/* אנימציית רענון */
+@keyframes refresh-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.content-section.refreshing .content-table {
+  animation: refresh-pulse 1s ease-in-out;
+  pointer-events: none;
+}
+
+.content-section.refreshing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #4a9eff, transparent);
+  animation: loading-bar 1s infinite linear;
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }

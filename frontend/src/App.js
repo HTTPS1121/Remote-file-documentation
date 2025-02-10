@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import FileExplorer from './components/FileExplorer';
 import FilterPanel from './components/FilterPanel';
@@ -154,6 +154,8 @@ function App() {
     const sessionUser = sessionStorage.getItem('user');
     return sessionUser ? JSON.parse(sessionUser) : null;
   });
+  const fileExplorerRef = useRef(null);
+  const documentationViewRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -557,14 +559,24 @@ function App() {
   const refreshFiles = async () => {
     if (!currentPath || !user) return;
     
-    setLoading(true);
     setError(null);
     
     try {
+      // רענון התיקיות
+      if (fileExplorerRef.current) {
+        await fileExplorerRef.current.refreshDirectories();
+      }
+
+      // רענון הקבצים
       const token = window.getStoredToken();
       if (!token) {
         window.handleLogout();
         return;
+      }
+
+      // מתחילים את האנימציה
+      if (documentationViewRef.current) {
+        documentationViewRef.current.startRefreshing();
       }
 
       const response = await fetch(`${API_URL}/list-directory`, {
@@ -594,9 +606,12 @@ function App() {
       setFiles(data.files || []);
     } catch (err) {
       setError('שגיאה בטעינת הקבצים');
-      console.error('Error refreshing files:', err);
+      console.error('Error refreshing:', err);
     } finally {
-      setLoading(false);
+      // מסיימים את האנימציה
+      if (documentationViewRef.current) {
+        documentationViewRef.current.stopRefreshing();
+      }
     }
   };
 
@@ -645,6 +660,7 @@ function App() {
                 </button>
               </div>
               <FileExplorer 
+                ref={fileExplorerRef}
                 currentPath={currentPath} 
                 onPathChange={setCurrentPath} 
                 user={user}
@@ -673,11 +689,13 @@ function App() {
                   <div className="loading">טוען...</div>
                 ) : (
                   <DocumentationView 
+                    ref={documentationViewRef}
                     files={files} 
                     currentPath={currentPath}
                     onPathChange={setCurrentPath}
                     onError={setError}
                     tableSettings={tableSettings}
+                    selectedTypes={selectedTypes}
                   />
                 )}
               </div>
